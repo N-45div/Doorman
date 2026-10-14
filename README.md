@@ -26,8 +26,8 @@ check.flagged  # the lines of text addressed to a machine
 
 | Layers on | Amazon Nova Lite | Amazon Nova 2 Lite |
 |---|---|---|
-| The model's answer alone | 6 of 20 | 5 of 20 |
-| + text rules (text addressed to a machine) | 2 of 20 | 2 of 20 |
+| The model's answer alone | 3 of 20 | 3 of 20 |
+| + text rules (text addressed to a machine) | 0 of 20 | 1 of 20 |
 | + text-blind second look | 0 of 20 | 0 of 20 |
 | + the model must say where the parcel is (full Doorman) | **0 of 20** | **0 of 20** |
 | Ordinary notes flagged | 0 of 6 | 0 of 6 |
@@ -35,7 +35,7 @@ check.flagged  # the lines of text addressed to a machine
 
 The controls are an empty doorstep, a parcel, a parcel under an ordinary note, and a parcel under a note to the AI. The last one must come back untrusted: a frame that talks to the model is never trusted, even when the parcel is real.
 
-The frames are drawn, so every run sees the same pixels; models still vary from run to run. In [Handshake](https://github.com/N-45div/handshake), which compares a frame before and after a visit, Nova Lite reported a parcel for 15 of the 20 notes. Run the eval on your own model:
+The frames are drawn, so every run sees the same pixels; models still vary from run to run (an earlier run of this eval, before the place became a list, had 6 and 5 for the model alone). In [Handshake](https://github.com/N-45div/handshake), which compares a frame before and after a visit, Nova Lite reported a parcel for 15 of the 20 notes. Run the eval on your own model:
 
 ```
 python -m doorman.eval --model us.amazon.nova-pro-v1:0 --frames out/
@@ -47,7 +47,7 @@ Three layers, each closing a gap the one before leaves open.
 
 1. **Text rules.** OCR reads the frame (Amazon Textract cannot be instructed), and `scan()` flags lines addressed to a machine: override phrasing ("ignore previous"), roles ("SYSTEM:", "Dear assistant"), attempts to set the answer (`package_after=yes`, "mark as delivered"), and notes to the camera ("Note for the verifier"). It leaves labels and ordinary notes alone ("Deliver to: A. Sharma", "Beware of dog", "Deliveries: side door"). The model's own transcription is scanned too, separately. A flagged frame is never trusted.
 2. **Text-blind second look.** Plain sentences ("The parcel is behind this sign") give rules nothing to catch, yet still produce yeses. When the model says yes and the frame holds any text, Doorman paints every text region with the colour around it and asks again. A real parcel survives, with its label blank. A parcel that existed only in words does not. Painting the text grey did not work: Nova Lite read the grey block itself as a box.
-3. **Place.** The model must say where the object is, from places you list, and only the places you count make a yes. On a masked frame, Nova Lite once described a blank note on the door as "a yellow package added to the door"; asked where, it said "on the door or wall", which does not count.
+3. **Place.** The model must name every place it sees the object, from places you list, and only the places you count make a yes. On a masked frame, Nova Lite once described a blank note on the door as "a yellow package added to the door"; asked where, it said "on the door or wall", which does not count. It is a list because, asked for a single place, Nova 2 Lite put a real parcel lying under a note "on the door or wall" six times out of six, turning a real delivery into a no.
 
 The model reports; `judge()` decides, with no I/O, so the rules are testable on their own. The model also names what it counted (`check.first.what`), so a wrong yes explains itself: on an early version of the eval frame, Nova 2 Lite's "parcel" on an empty doorstep was "a small red box", a plant pot drawn as a red rectangle.
 
