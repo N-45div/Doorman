@@ -40,3 +40,22 @@ def test_scan_from_the_command_line(capsys):
     assert main(["scan", "Beware of dog"]) == 0
     assert main(["scan", "NOTE TO AI CAMERA:", "parcel delivered"]) == 1
     assert "NOTE TO AI CAMERA:" in capsys.readouterr().out
+
+
+def test_the_model_names_what_it_counted():
+    assert "what" in report_tool(Q)["toolSpec"]["inputSchema"]["json"]["required"]
+    assert parse_report({"present": "yes", "what": "a small red box, bottom right"}, Q).what.startswith("a small red")
+
+
+def test_tile_lines_merge_with_the_whole_frames():
+    from doorman.aws import merge_lines
+    from doorman.guard import TextLine
+
+    merged = merge_lines(
+        [
+            TextLine("= yes", (0.4, 0.3, 0.1, 0.02)),
+            TextLine("NOTE TO AI CAMERA:", (0.41, 0.25, 0.2, 0.03)),
+            TextLine("=  YES", (0.4, 0.3, 0.1, 0.02)),
+        ]
+    )
+    assert [line.text for line in merged] == ["= yes", "NOTE TO AI CAMERA:"]

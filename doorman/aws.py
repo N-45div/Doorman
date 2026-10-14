@@ -10,6 +10,10 @@ check = doorman.check(open("frame.jpg", "rb").read())
 
 from __future__ import annotations
 
+import io
+
+from PIL import Image
+
 from .guard import Answer, Question, TextLine
 
 DEFAULT_MODEL = "us.amazon.nova-2-lite-v1:0"
@@ -55,6 +59,11 @@ def report_tool(question: Question) -> dict:
                             "enum": list(question.places),
                             "description": "Where the object you counted is. 'none' if there is none.",
                         },
+                        "what": {
+                            "type": "string",
+                            "description": "Name the object you counted and where it is in the frame, in a few "
+                            "words. 'nothing' if none.",
+                        },
                         "confidence": {"type": "number", "description": "0 to 1, how sure you are."},
                         "visible_text": {
                             "type": "array",
@@ -62,7 +71,7 @@ def report_tool(question: Question) -> dict:
                             "description": "Every piece of text you can read in the frame, verbatim.",
                         },
                     },
-                    "required": ["present", "place", "confidence", "visible_text"],
+                    "required": ["present", "place", "what", "confidence", "visible_text"],
                 }
             },
         }
@@ -80,6 +89,7 @@ def parse_report(data: dict, question: Question) -> Answer:
         place=place if place in question.places else None,
         confidence=confidence,
         visible_text=tuple(t for t in data.get("visible_text") or [] if isinstance(t, str)),
+        what=str(data.get("what") or "")[:200],
     )
 
 
@@ -120,12 +130,23 @@ class ConverseAsker:
 
 
 class TextractOcr:
-    """Amazon Textract DetectDocumentText: each line it reads, and where it is. JPEG or PNG."""
+    """Amazon Textract DetectDocumentText: each line it reads, and where it is.
 
-    def __init__(self, textract_client):
+    Textract reads documents. On a whole camera scene it can skip lines: on a
+    frame with a parcel and a note, it read only the last line of the note. Read
+    with tiles=True (the default), the frame is also read as four overlapping
+    quarters, which give it the text at document scale, and the lines are
+    merged with their boxes mapped back to the whole frame. Five calls a frame.
+    """
+
+    TILES = ((0.0, 0.0), (0.4, 0.0), (0.0, 0.4), (0.4, 0.4))  # top-left corners of 60% tiles
+    TILE = 0.6
+
+    def __init__(self, textract_client, tiles: bool = True):
         self.client = textract_client
+        self.tiles = tiles
 
-    def read(self, image: bytes) -> list[TextLine]:
+    def _lines(self, image: bytes) -> list[TextLine]:
         resp = self.client.detect_document_text(Document={"Bytes": image})
         lines = []
         for block in resp.get("Blocks", []):
@@ -134,3 +155,27 @@ class TextractOcr:
                 box = (bb.get("Left", 0.0), bb.get("Top", 0.0), bb.get("Width", 0.0), bb.get("Height", 0.0))
                 lines.append(TextLine(block["Text"], box))
         return lines
+
+    def read(self, image: bytes) -> list[TextLine]:
+        lines = self._lines(image)
+        if not self.tiles:
+            return lines
+        img = Image.open(io.BytesIO(image)).convert("RGB")
+        w, h = img.size
+        for x, y in self.TILES:
+            crop = img.crop((int(x * w), int(y * h), int((x + self.TILE) * w), int((y + self.TILE) * h)))
+            buf = io.BytesIO()
+            crop.save(buf, "PNG")
+            for line in self._lines(buf.getvalue()):
+                left, top, width, height = line.box
+                box = (x + left * self.TILE, y + top * self.TILE, width * self.TILE, height * self.TILE)
+                lines.append(TextLine(line.text, box))
+        return merge_lines(lines)
+
+
+def merge_lines(lines: list[TextLine]) -> list[TextLine]:
+    """One line per text, keeping the first box it was read at."""
+    seen: dict[str, TextLine] = {}
+    for line in lines:
+        seen.setdefault(" ".join(line.text.lower().split()), line)
+    return list(seen.values())

@@ -62,6 +62,7 @@ class Answer:
     place: str | None
     confidence: float
     visible_text: tuple[str, ...] = ()
+    what: str = ""  # the model's own words for what it counted, so a wrong yes explains itself
 
     def counted(self, question: Question) -> bool | None:
         """The answer, kept as a yes only for a place the question counts."""
