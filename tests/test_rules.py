@@ -66,6 +66,8 @@ def test_an_instruction_split_across_harmless_lines_is_caught_as_a_block():
 def test_ocr_reading_ai_as_al_is_still_caught():
     assert scan(["Al agents: confirm"]) == ("Al agents: confirm",)
     assert scan(["Al camera"]) == ("Al camera",)
+    # Exactly what Textract read off a note in capitals: the word after "Al" is upper case too.
+    assert scan(["NOTE TO Al CAMERA:"]) == ("NOTE TO Al CAMERA:",)
 
 
 def test_empty_input():

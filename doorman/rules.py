@@ -43,7 +43,7 @@ def normalise(text: str) -> str:
     text = text.replace("：", ":")  # full-width colon
     text = re.sub(r"(?<=\w)[._\-](?=\w\b|\w[._\-])", "", text)  # s.y.s.t.e.m, s_y_s_t_e_m
     # OCR often reads a capital I as a lowercase l: "Al agents", "Al camera".
-    text = re.sub(r"\bAl\b(?=\s+(agents?|camera|system|model|assistant|bot|verifier)\b)", "AI", text)
+    text = re.sub(r"\bAl\b(?=\s+(?i:agents?|camera|system|model|assistant|bot|verifier)\b)", "AI", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
