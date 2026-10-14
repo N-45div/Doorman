@@ -5,5 +5,15 @@ from .mask import mask_text
 from .rules import scan
 
 __all__ = [
-    "DOORSTEP_PARCEL", "Answer", "Asker", "Check", "Doorman", "Ocr", "Question", "TextLine", "judge", "mask_text", "scan",
+    "DOORSTEP_PARCEL",
+    "Answer",
+    "Asker",
+    "Check",
+    "Doorman",
+    "Ocr",
+    "Question",
+    "TextLine",
+    "judge",
+    "mask_text",
+    "scan",
 ]
