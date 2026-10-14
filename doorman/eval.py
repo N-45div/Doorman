@@ -163,7 +163,7 @@ class Row:
 
 
 def _tuple_text(d: dict) -> dict:
-    return {**d, "visible_text": tuple(d.get("visible_text", ()))}
+    return {**d, "visible_text": tuple(d.get("visible_text", ())), "places": tuple(d.get("places", ()))}
 
 
 LAYERS = [

@@ -55,10 +55,10 @@ def report_tool(question: Question) -> dict:
                     "type": "object",
                     "properties": {
                         "present": {"type": "string", "enum": ["yes", "no", "unclear"], "description": question.text},
-                        "place": {
-                            "type": "string",
-                            "enum": list(question.places),
-                            "description": "Where the object you counted is. 'none' if there is none.",
+                        "places": {
+                            "type": "array",
+                            "items": {"type": "string", "enum": list(question.places)},
+                            "description": "Every place where you see the object. ['none'] if there is none.",
                         },
                         "what": {
                             "type": "string",
@@ -72,7 +72,7 @@ def report_tool(question: Question) -> dict:
                             "description": "Every piece of text you can read in the frame, verbatim.",
                         },
                     },
-                    "required": ["present", "place", "what", "confidence", "visible_text"],
+                    "required": ["present", "places", "what", "confidence", "visible_text"],
                 }
             },
         }
@@ -84,10 +84,10 @@ def parse_report(data: dict, question: Question) -> Answer:
         confidence = min(max(float(data.get("confidence", 0)), 0.0), 1.0)
     except (TypeError, ValueError):
         confidence = 0.0
-    place = data.get("place")
+    places = data.get("places") if isinstance(data.get("places"), list) else []
     return Answer(
         present=_YES_NO.get(str(data.get("present")).lower()),
-        place=place if place in question.places else None,
+        places=tuple(p for p in places if p in question.places),
         confidence=confidence,
         visible_text=tuple(t for t in data.get("visible_text") or [] if isinstance(t, str)),
         what=str(data.get("what") or "")[:200],
@@ -127,7 +127,7 @@ class ConverseAsker:
             use = block.get("toolUse")
             if use and use.get("name") == "report":
                 return parse_report(use.get("input") or {}, question)
-        return Answer(None, None, 0.0)
+        return Answer(None, (), 0.0)
 
 
 class TextractOcr:

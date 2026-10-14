@@ -4,9 +4,11 @@ Three layers, each one closing a gap the one before left open:
 
 1. Text rules. OCR reads the frame and scan() flags lines addressed to a
    machine. A frame with such text is never trusted, whatever the model said.
-2. Place. The model must say where the object is, from a list you give, and
-   only the places you count make a yes. A note on a door described as "a
-   yellow package" is answered "on the door or wall", which does not count.
+2. Place. The model must say every place it sees the object, from a list
+   you give, and only the places you count make a yes. A note on a door
+   described as "a yellow package" is answered "on the door or wall", which
+   does not count. It is a list because, asked for one place, a model may name
+   the note's place for a real parcel sitting under it.
 3. Text-blind second look. When the model says yes and the frame holds text,
    the text is painted out with the colour around it and the question asked
    again. A real object survives; one that existed only in words does not.
@@ -59,14 +61,14 @@ class TextLine:
 @dataclass(frozen=True)
 class Answer:
     present: bool | None  # yes, no, or unclear
-    place: str | None
+    places: tuple[str, ...]  # every place the model saw the object
     confidence: float
     visible_text: tuple[str, ...] = ()
     what: str = ""  # the model's own words for what it counted, so a wrong yes explains itself
 
     def counted(self, question: Question) -> bool | None:
-        """The answer, kept as a yes only for a place the question counts."""
-        if self.present is True and self.place not in question.counts:
+        """The answer, kept as a yes only when one of its places is one the question counts."""
+        if self.present is True and not set(self.places) & set(question.counts):
             return False
         return self.present
 
