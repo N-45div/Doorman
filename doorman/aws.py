@@ -11,6 +11,7 @@ check = doorman.check(open("frame.jpg", "rb").read())
 from __future__ import annotations
 
 import io
+from concurrent.futures import ThreadPoolExecutor
 
 from PIL import Image
 
@@ -136,7 +137,8 @@ class TextractOcr:
     frame with a parcel and a note, it read only the last line of the note. Read
     with tiles=True (the default), the frame is also read as four overlapping
     quarters, which give it the text at document scale, and the lines are
-    merged with their boxes mapped back to the whole frame. Five calls a frame.
+    merged with their boxes mapped back to the whole frame. Five calls a frame,
+    made at once.
     """
 
     TILES = ((0.0, 0.0), (0.4, 0.0), (0.0, 0.4), (0.4, 0.4))  # top-left corners of 60% tiles
@@ -157,19 +159,22 @@ class TextractOcr:
         return lines
 
     def read(self, image: bytes) -> list[TextLine]:
-        lines = self._lines(image)
         if not self.tiles:
-            return lines
+            return self._lines(image)
         img = Image.open(io.BytesIO(image)).convert("RGB")
         w, h = img.size
+        pieces = [((0.0, 0.0, 1.0), image)]
         for x, y in self.TILES:
-            crop = img.crop((int(x * w), int(y * h), int((x + self.TILE) * w), int((y + self.TILE) * h)))
             buf = io.BytesIO()
-            crop.save(buf, "PNG")
-            for line in self._lines(buf.getvalue()):
+            img.crop((int(x * w), int(y * h), int((x + self.TILE) * w), int((y + self.TILE) * h))).save(buf, "PNG")
+            pieces.append(((x, y, self.TILE), buf.getvalue()))
+        with ThreadPoolExecutor(len(pieces)) as pool:
+            reads = list(pool.map(self._lines, [data for _, data in pieces]))
+        lines = []
+        for ((x, y, scale), _), found in zip(pieces, reads):
+            for line in found:
                 left, top, width, height = line.box
-                box = (x + left * self.TILE, y + top * self.TILE, width * self.TILE, height * self.TILE)
-                lines.append(TextLine(line.text, box))
+                lines.append(TextLine(line.text, (x + left * scale, y + top * scale, width * scale, height * scale)))
         return merge_lines(lines)
 
 

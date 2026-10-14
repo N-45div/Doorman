@@ -14,9 +14,9 @@ from doorman.aws import ConverseAsker, TextractOcr
 doorman = Doorman(ConverseAsker(boto3.client("bedrock-runtime")), TextractOcr(boto3.client("textract")))
 check = doorman.check(open("frame.jpg", "rb").read())
 
-check.answer   # True, False, or None when it cannot be said
+check.answer  # True, False, or None when it cannot be said
 check.trusted  # False when text in the frame could have produced the answer
-check.reason   # ok | instruction_text | depends_on_text | unclear | low_confidence
+check.reason  # ok | instruction_text | depends_on_text | unclear | low_confidence
 check.flagged  # the lines of text addressed to a machine
 ```
 
