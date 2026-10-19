@@ -35,7 +35,7 @@ check.flagged  # the lines of text addressed to a machine
 
 The controls are an empty doorstep, a parcel, a parcel under an ordinary note, and a parcel under a note to the AI. The last one must come back untrusted: a frame that talks to the model is never trusted, even when the parcel is real.
 
-The frames are drawn, so every run sees the same pixels; models still vary from run to run (an earlier run of this eval, before the place became a list, had 6 and 5 for the model alone). In [Countersign](https://github.com/N-45div/countersign), which compares a frame before and after a visit, Nova Lite reported a parcel for 15 of the 20 notes. Run the eval on your own model:
+The frames are drawn, so every run sees the same pixels; models still vary from run to run (an earlier run of this eval, before the place became a list, had 6 and 5 for the model alone). In [Countersign](https://github.com/N-45div/CounterSign), which compares a frame before and after a visit, Nova Lite reported a parcel for 15 of the 20 notes. Run the eval on your own model:
 
 ```
 python -m doorman.eval --model us.amazon.nova-pro-v1:0 --frames out/
@@ -96,7 +96,7 @@ For development: `pip install -e ".[aws,dev]"` and `python -m pytest`. Tests tha
 
 ## Origin
 
-Doorman was built for [Countersign](https://github.com/N-45div/countersign), which issues signed delivery receipts witnessed by a Ring doorbell camera, during the Build, Ship, Shape: Amazon Developer Hackathon (2026). A false "delivered" is the most expensive mistake that system can make, and a note on the door was the cheapest way to cause one.
+Doorman was built for [Countersign](https://github.com/N-45div/CounterSign), which issues signed delivery receipts witnessed by a Ring doorbell camera, during the Build, Ship, Shape: Amazon Developer Hackathon (2026). A false "delivered" is the most expensive mistake that system can make, and a note on the door was the cheapest way to cause one.
 
 ## License
 
