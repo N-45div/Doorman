@@ -53,6 +53,8 @@ The model reports; `judge()` decides, with no I/O, so the rules are testable on 
 
 Textract reads documents, and on a whole camera scene it can skip lines. On one frame it read only "= yes" from a three-line note. `TextractOcr` therefore reads each frame whole and as four overlapping quarters, and merges the lines: five Textract calls per frame.
 
+Diagrams of the modules, one check, `judge()`, the tiled OCR and the eval are in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Your own question
 
 The default question is a parcel at a door. Any physical object works:
