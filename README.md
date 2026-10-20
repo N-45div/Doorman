@@ -81,8 +81,8 @@ python -m doorman check frame.jpg                                          # Tex
 ## Install
 
 ```
-pip install "git+https://github.com/N-45div/doorman"            # rules, mask and guard
-pip install "doorman-guard[aws] @ git+https://github.com/N-45div/doorman"   # with boto3
+pip install "git+https://github.com/N-45div/Doorman"            # rules, mask and guard
+pip install "doorman-guard[aws] @ git+https://github.com/N-45div/Doorman"   # with boto3
 ```
 
 For development: `pip install -e ".[aws,dev]"` and `python -m pytest`. Tests that call Textract and Nova run when AWS credentials are present and skip otherwise.
@@ -96,7 +96,7 @@ For development: `pip install -e ".[aws,dev]"` and `python -m pytest`. Tests tha
 
 ## Origin
 
-Doorman was built for Countersign, which issues signed delivery receipts witnessed by a Ring doorbell camera (try its [Doorstep Lab](https://lgr3tamrusi63hhi5x52utxufi0clbok.lambda-url.us-east-1.on.aws)), during the Build, Ship, Shape: Amazon Developer Hackathon (2026). A false "delivered" is the most expensive mistake that system can make, and a note on the door was the cheapest way to cause one.
+Doorman was built for [Countersign](https://github.com/N-45div/CounterSign), which issues signed delivery receipts witnessed by a Ring doorbell camera (try its [Doorstep Lab](https://lgr3tamrusi63hhi5x52utxufi0clbok.lambda-url.us-east-1.on.aws)), during the Build, Ship, Shape: Amazon Developer Hackathon (2026). A false "delivered" is the most expensive mistake that system can make, and a note on the door was the cheapest way to cause one.
 
 ## License
 
